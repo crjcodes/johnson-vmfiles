@@ -45,12 +45,13 @@ Vagrant.configure("2") do |config|
   # Example for VirtualBox:
   #
   
-  config.vm.define "$ENV['machine']"
+  
+  config.vm.define ( ENV['machine'] || "devstuff" )
 
   config.vm.provider "virtualbox" do |vb|
     
     # name the Virtual Box (what appears in the Virtual Box GUI)
-    vb.name = "$ENV['machine']"
+    vb.name = ( ENV['machine'] || "devstuff" )
     
     # Customize the amount of memory on the VM:
     vb.memory = "1024"
