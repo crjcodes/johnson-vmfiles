@@ -68,7 +68,6 @@ Vagrant.configure("2") do |config|
     ansible.limit = 'all'
     ansible.verbose = true
     ansible.install = true
-    ansible.inventory_path = "provision/inventories/dev"
     ansible.playbook = "provision/provision.yml"
   end
 
