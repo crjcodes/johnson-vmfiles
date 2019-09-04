@@ -29,17 +29,18 @@
   connection: local
   become: yes
   become_user: root  
-  
-  vars:
-    - rbenv_root: /home/vagrant/.rbenv
-    - ruby_deploy_user: vagrant 
-    - ruby_version: 2.6.0
-    
+      
   tasks:
   
     - name: Get aptitude for upgrade
-      apt: pkg=aptitude state=present
-      
+      apt: 
+        name: apt
+        state: latest
+             
+    - name: Update apt repositories
+      apt: 
+        update_cache: yes
+            
     - name: Safe system upgrade via aptitude
       apt: upgrade=safe
 
@@ -68,40 +69,28 @@
  
     #------------------- RUBY ON RAILS
     
-    # ruby-build is packaged with my Ubuntu, but
-    # it builds ruby from scratch.  Opting for more direct way    
-
-    - name: Ruby on Rails dependencies
-      apt: name={{ item }} update_cache=true state=latest
-      with_items:
-        - build-essential      
-        - libssl-dev
-        - libssl-doc
-        - libcurl4-openssl-dev
-        - libmysqlclient-dev
-        - libxml2-dev
-        - libxslt1-dev
-        - zlib1g-dev
-        
-    - name: Clone rbenv repository
-      git: repo=https://github.com/rbenv/rbenv.git
-           dest=~{{ rbenv_root }}
-           update=no           
-
-    - name: Creates plugin directory for rbenv
-      file: path={{ rbenv_root }}/plugins/ owner={{ ruby_deploy_user }} group={{ ruby_deploy_user }} mode=0755 state=directory
-
-    # TODO: install any desired rbenv plugins
+    # LATER: move ruby and rails support to a per-project basis,
+    # switching between various ruby versions paired with gem sets 
+   
+    # installs one version of ruby system-wide
+    
+    - name: Ruby installation
+      apt:
+        name: ruby-full
+        state: latest
+        update_cache: yes
+    
+    - name: Install bundler gem
+      shell: gem install bundler rails:4.2.2
       
-    - name: Add rbenv to PATH in bashrc
-      command: echo 'export PATH="{{ rbenv_root }}/bin:$PATH"' >> ~/.bashrc    
-      
-    - name: Add to bashrc an rbenv init      
-      command: echo 'eval "$(rbenv init -)"' >> ~/.bashrc
      
-    - name: Install ruby with rbenv
-      shell: echo 'export PATH="{{ rbenv_root }}/bin:$PATH"' rbenv install {{ ruby_version }}
-      
-
-
-       
+    #------------------- START UP SERVERS AND SERVICES
+    
+    # TODO: run rails server
+    # TODO: run Apache server
+     
+    #------------------- TODO: PROJECTS
+    #  Either run a shell in the Vagrantfile after Ansible 
+    #  provisioning, or git repo from github to this VM
+    
+    

@@ -1,0 +1,144 @@
+#
+#   DEVELOPMENT PLAYBOOK
+#
+#
+#   Local Host at 192.168.33.10
+#   (All hosts?)
+#
+#   Aptitude
+#   System upgrades
+#
+#   Apache 
+#
+#   Bash, OpenSSL, etc updates
+#
+#   PostgreSQL
+#   
+#   Git
+#   Curl
+#
+#   Ruby
+#   Rails
+#
+#   PostgreSQL
+#   
+#   
+#
+---
+- hosts: all
+  connection: local
+  become: yes
+  become_user: root  
+  
+  vars:
+    - rbenv_root: .rbenv
+    - rbenv_plugins: .rbenv_plugins
+    - ruby_deploy_user: vagrant 
+    - ruby_version: 2.6.0
+    - rails_version: 6.0
+    - result: false
+    
+  tasks:
+  
+    - name: Get aptitude for upgrade
+      apt: pkg=aptitude state=present
+      
+    - name: Safe system upgrade via aptitude
+      apt: upgrade=safe
+
+    - name: Ensure basic tools and packages are present
+      apt: name={{ item }} update_cache=true state=latest
+      with_items:
+        - bash
+        - openssl
+        - git
+        - curl
+      
+    - name: Install Apache
+      apt: name=apache2 state=latest update_cache=yes
+            
+    - name: Start Apache
+      service: name=apache2 state=running enabled=yes
+              
+    - name: Install PostgreSQL
+      apt: pkg={{ item}} update_cache=yes state=latest
+      with_items:
+        - python-psycopg2
+        - postgresql
+        - postgresql-contrib
+        - libpq-dev
+       
+ 
+    #------------------- RUBY ON RAILS
+    
+    # ruby-build is packaged with my Ubuntu, but
+    # it builds ruby from scratch.  Opting for more direct way        
+    
+    - name: Ruby on Rails dependencies
+      apt: name={{ item }} update_cache=true state=latest
+      with_items:
+        - build-essential      
+        - libssl-dev
+        - libssl-doc
+        - libcurl4-openssl-dev
+        - libmysqlclient-dev
+        - libxml2-dev
+        - libxslt1-dev
+        - zlib1g-dev
+
+    # Need some testing here
+    #   (a) git already installed? 
+    #        (a1) Yes.  Attempt update
+    #        (a2) No.  Install it
+    #           (a2a) target directory not empty ==> clean up, then..
+   #            (a2b) Perform command to install
+    #   (b) Check install.  Valid?
+    #
+    
+    # RBENV INSTALLATION
+    #  -- check for directory and remove if necessary
+    #  -- clone the git repository
+    
+    - name: check for rbenv_root
+      stat:
+        path: "~/{{ rbenv_root }}"
+      register: result
+      become_user: vagrant
+
+        # debugging here
+    - name: remove rbenv directory
+      command: "rm -rf ~/{{ rbenv_root }}"
+      when: result.stat.exists
+      become_user: vagrant
+        
+    - name: Clone rbenv repository
+      git: 
+        repo: https://github.com/rbenv/rbenv.git
+        dest: "~/{{ rbenv_root }}"
+        update: yes              
+        clone: yes
+        force: yes
+      register: result
+      become_user: vagrant
+      
+    - name: git result
+      debug:
+        msg: "~/{{ result }}"
+      become_user: vagrant
+      
+    - name: Add rbenv to PATH in .profile for user vagrant
+      become_user: vagrant
+      shell: echo 'export PATH="~/{{ rbenv_root }}/bin:$PATH"' >> ~/.profile
+      become_user: vagrant
+      
+    - name: Add to .profile an rbenv init      
+      become_user: vagrant
+      shell: echo 'eval "$(rbenv init -)"' >> ~/.profile
+      become_user: vagrant
+      
+    - name: Creates plugin directory for rbenv
+      file: path="~/{{ rbenv_plugins }} owner={{ ruby_deploy_user }} group={{ ruby_deploy_user }}" mode=0755 state=directory
+      become_user: vagrant
+      
+    # TODO: install any desired rbenv plugins
+        
