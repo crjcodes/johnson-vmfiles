@@ -67,3 +67,30 @@
         - libpq-dev
        
  
+    #------------------- RUBY ON RAILS
+    
+    # LATER: move ruby and rails support to a per-project basis,
+    # switching between various ruby versions paired with gem sets 
+   
+    # installs one version of ruby system-wide
+    
+    - name: Ruby installation
+      apt:
+        name: ruby-full
+        state: latest
+        update_cache: yes
+    
+    - name: Install bundler gem
+      shell: gem install bundler rails:4.2.2
+      
+     
+    #------------------- START UP SERVERS AND SERVICES
+    
+    # TODO: run rails server
+    # TODO: run Apache server
+     
+    #------------------- TODO: PROJECTS
+    #  Either run a shell in the Vagrantfile after Ansible 
+    #  provisioning, or git repo from github to this VM
+    
+    
