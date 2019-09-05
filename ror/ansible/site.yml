@@ -1,0 +1,15 @@
+---
+# This playbook deploys the whole application stack for
+# developing and deploying RoR CRUD apps
+
+- name: apply common configuration to all nodes
+  hosts: all
+  connection: local
+  become: yes
+  become_user: root  
+      
+  roles:
+    - common
+    - web
+    - db
+    - framework
