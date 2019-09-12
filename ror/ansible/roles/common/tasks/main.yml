@@ -1,0 +1,35 @@
+---
+# COMMON
+#
+# role: common
+# install items common to every setup 
+ 
+ # Ensures apitutde is installed for initial package management
+- name: Update all packages to the latest version
+  apt:
+    name: aptitude 
+    
+- name: Get aptitude for upgrade
+  apt: 
+    name: apt
+    state: latest
+         
+- name: Update apt repositories
+  apt: 
+    update_cache: yes
+        
+- name: Safe system upgrade via aptitude
+  apt: 
+    upgrade: safe
+  connection: local
+  become: yes
+  become_user: root  
+
+- name: Ensure basic tools and packages are present
+  apt: name={{ item }} update_cache=true state=latest
+  with_items:
+    - bash
+    - openssl
+    - git
+    - curl
+

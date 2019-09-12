@@ -1,0 +1,14 @@
+---
+# WEB
+#
+# Load webserver (Apache, nginx, etc)
+#
+
+- name: test 3
+  command: ls
+  
+- name: Install Apache
+  apt: name=apache2 state=latest update_cache=yes
+        
+- name: Start Apache
+  service: name=apache2 state=running enabled=yes

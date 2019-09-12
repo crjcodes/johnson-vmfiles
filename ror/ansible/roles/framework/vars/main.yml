@@ -1,0 +1,6 @@
+---
+tmp_ruby_install_path: /tmp/ruby-install
+ruby_install_ver: "0.7.0"
+tmp_ruby_install_pkg: ruby-install-{{ ruby_install_ver }}
+ruby_install_exec_fullpath: /usr/bin/ruby-install
+ruby_ver: "2.4.1"
