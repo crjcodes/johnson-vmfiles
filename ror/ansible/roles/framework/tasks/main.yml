@@ -6,17 +6,8 @@
 
 # CHRUBY + RUBY-INSTALL
 
-#- name: get gpg for ruby install via a fellow developer
-#  get_url:    
-#    url: https://raw.github.com/postmodern/postmodern.github.io/master/postmodern.asc
-#    dest: /tmp/postmodern.asc
-#  become_user: vagrant
-
-- name: import gpg key    
-  apt_key:
-    url: https://raw.github.com/postmodern/postmodern.github.io/master/postmodern.asc    
-    
-# equivalent of wget?    
+#------------------------------------------- 
+# RUBY-INSTALL
 
 # is ruby-install already present?
 
@@ -25,7 +16,7 @@
     path: "{{ ruby_install_exec_fullpath }}"
   register: result_a
 
-# check version of ruby-install
+# ruby-install version check
   
 - name: check ruby-install version
   command: "{{ ruby_install_exec_fullpath }} --version"
@@ -34,27 +25,29 @@
   changed_when: False
   failed_when: False
 
+# steps to install the app  
+  
 - name: installation steps for ruby-install
   include: ruby-install-install.yml
   when: "not result_a.stat.exists or ruby_install_ver is not defined or ruby_install_ver not in result_b.stdout"
+
+#------------------------------------------- 
+# Ruby
   
-# BEGIN OLD SECTION  
-# following will not work with the older version of Ansible I'm using
-#  
-#- name: check for correct version of ruby-install
-#  shell: readlink -f {{ tmp_ruby_install_path }} | sed -e s'|{{ tmp_ruby_install_path }}||'
-#  register: OLD_VERSION 
-#  when: "result_there.stat.exists"
-   
-# TODO: fix error below
-# ERROR! The conditional check 'OLD_VERSION.stdout | version_compare(ruby_install_ver,'>=')' failed. The error was: ERROR! Version comparison: 'dict object' has no attribute 'stdout'
-# Error result of an older version of Ansible (2.0) installed via apt instead of a later 2.5 or 2.8
-# Will tryg original approach instead
+- name: install ruby per the version in vars
+  shell: "ruby-install ruby {{ ruby_ver }}"
 
-#- block: 
-#  - debug: 
-#      msg: "Nothing to Upgrade, exiting upgrade"
-#  - meta: end_play
-#  when: OLD_VERSION.stdout | version_compare(ruby_install_ver,'>=')
+#------------------------------------------- 
+# chruby
 
-# END OLD SECTION
+# steps to install the app  
+  
+- name: installation steps for chruby
+  include: chruby-install.yml
+
+#------------------------------------------- 
+# Rails
+#- name: Install rails
+#  shell: "gem install rails -v {{ rails_ver }} --no-rdoc --no-ri"
+  
+  

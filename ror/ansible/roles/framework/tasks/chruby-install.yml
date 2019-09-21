@@ -1,0 +1,65 @@
+#-------------------------------------------
+# tmp directory for chruby
+
+- name: chruby check for tmp directory
+  stat:
+    path: "{{ tmp_chruby_install_path }}"
+  register: result_chruby
+
+- name: chruby  create temp dir for chruby
+  become_user: vagrant
+  file:
+    path: "{{ tmp_chruby_install_path }}"
+    state: directory    
+  when: result_chruby.stat.islnk is not defined
+
+#-------------------------------------------
+# get chruby package and unlock
+
+- name: chruby check if uncompressed package available
+  become_user: vagrant
+  stat:
+    path: "{{ tmp_chruby_install_path }}/chruby-{{ chruby_ver }}.tar.gz.asc"
+  register: result_chruby_uncompressed
+
+- name: chruby if cannot find uncompressed, check if we have compressed package
+  become_user: vagrant
+  stat:
+    path: "{{ tmp_chruby_install_path }}/chruby-{{ chruby_ver }}.tar.gz"
+  register: result_chruby_compressed
+  when: result_chruby_uncompressed is undefined or result_chruby_uncompressed.stat.exists == False
+  
+- name: chruby if we do not have compressed package, download from github
+  become_user: vagrant
+  get_url:
+    url: "https://github.com/postmodern/chruby/archive/v{{ chruby_ver }}.tar.gz"
+    dest: "{{ tmp_chruby_install_path }}"
+  when: result_chruby_compressed is undefined or result_chruby_compressed.stat.exists == False
+  
+#-------------------------------------------
+# and prepare and do the actual install  
+  
+- name: chruby make sure the temporary uncompress directory exist
+  file:
+    path: "{{ tmp_chruby_install_path }}/chruby/"
+    state: directory    
+  
+- name: chruby uncompress chruby
+  unarchive:
+    src: "{{ tmp_chruby_install_path }}/{{ tmp_chruby_pkg }}.tar.gz"
+    dest: "{{ tmp_chruby_install_path }}/chruby/"
+
+- name: chruby install chruby
+  shell: "cd {{ tmp_chruby_install_path }}/chruby/{{ tmp_chruby_pkg }}; make install"
+
+# If you have a later version of Ansible (>2.3), change 'dest' to 'path' below  
+- name: chruby add chruby files for auto-loading chruby automatically to shell rc
+  become_user: vagrant
+  blockinfile:
+    dest: ~/.bashrc
+    block: |
+      source /usr/local/share/chruby/chruby.sh
+      source /usr/local/share/chruby/auto.sh
+    
+
+    

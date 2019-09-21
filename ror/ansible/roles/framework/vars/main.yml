@@ -3,4 +3,11 @@ tmp_ruby_install_path: /tmp/ruby-install
 ruby_install_ver: "0.7.0"
 tmp_ruby_install_pkg: ruby-install-{{ ruby_install_ver }}
 ruby_install_exec_fullpath: /usr/bin/ruby-install
-ruby_ver: "2.4.1"
+
+ruby_ver: "2.6.4"
+
+tmp_chruby_install_path: /tmp/chruby
+chruby_ver: "0.3.9"
+tmp_chruby_pkg: chruby-{{ chruby_ver }}
+
+rails_ver: "6.0.0"
