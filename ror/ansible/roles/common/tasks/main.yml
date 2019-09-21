@@ -24,7 +24,7 @@
   connection: local
   become: yes
   become_user: root  
-
+    
 - name: Ensure basic tools and packages are present
   apt: name={{ item }} update_cache=true state=latest
   with_items:
