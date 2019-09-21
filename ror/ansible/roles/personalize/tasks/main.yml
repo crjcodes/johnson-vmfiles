@@ -1,0 +1,7 @@
+---
+
+- name: Personalize by customizing user prompt, hopefully
+  become_user: vagrant
+  lineinfile:
+    dest: ~/.bashrc    
+    line: PS1="\[\e[44m\]\[\e[1;37m\]\u@\h:\[\e[m\] \[\e[1;31m\]\$PWD \[\e[00m\]\$ "
