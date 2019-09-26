@@ -9,5 +9,6 @@ ruby_ver: "2.6.4"
 tmp_chruby_install_path: /tmp/chruby
 chruby_ver: "0.3.9"
 tmp_chruby_pkg: chruby-{{ chruby_ver }}
+chruby_src_path: /usr/local/share/chruby
 
 rails_ver: "6.0.0"
