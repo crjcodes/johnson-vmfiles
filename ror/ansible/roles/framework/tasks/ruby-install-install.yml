@@ -44,6 +44,7 @@
     path: "{{ tmp_ruby_install_path }}/ruby-install/"
     state: directory    
   
+# TODO: handle the case where this indicates change based on "Cannot stat: No such file..."
 - name: uncompress ruby-install
   unarchive:
     src: "{{ tmp_ruby_install_path }}/{{ tmp_ruby_install_pkg }}.tar.gz"
