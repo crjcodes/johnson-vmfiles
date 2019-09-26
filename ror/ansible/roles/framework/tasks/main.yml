@@ -33,21 +33,34 @@
 
 #------------------------------------------- 
 # Ruby
-  
-- name: install ruby per the version in vars
-  shell: "ruby-install ruby {{ ruby_ver }}"
 
+# TODO: check for existence before runninng this steps
+
+- name: ruby version per var already installed
+  stat:
+    path: "/opt/rubies/ruby-{{ ruby_ver }}"
+  register: result_ruby_main_ver
+ 
+- name: install a version of ruby before chruby, if not already installed
+  shell: "ruby-install ruby {{ ruby_ver }}" 
+  when: not result_ruby_main_ver.stat.exists
+   
 #------------------------------------------- 
 # chruby
 
-# steps to install the app  
+# steps to install the app to switch between ruby versions
   
 - name: installation steps for chruby
   include: chruby-install.yml
 
 #------------------------------------------- 
-# Rails
-#- name: Install rails
-#  shell: "gem install rails -v {{ rails_ver }} --no-rdoc --no-ri"
-  
-  
+# Ruby gems
+
+- name: install ruby gems
+  become_user: vagrant
+  command: bash -lc "gem install --no-ri {{item}}" 
+  with_items:
+   - rails
+  ignore_errors: yes
+
+ 
