@@ -51,15 +51,40 @@
 
 - name: chruby install chruby
   shell: "cd {{ tmp_chruby_install_path }}/chruby/{{ tmp_chruby_pkg }}; make install"
-
+ 
 # If you have a later version of Ansible (>2.3), change 'dest' to 'path' below  
-- name: chruby add chruby files for auto-loading chruby automatically to shell rc
+# If you run chruby from a non-interactive shell, lines after the if interactive
+# conditional in bashrc will not get run, so we're placing these at the beginning
+
+- name: chruby add sourcing first thing for auto-loading chruby automatically to shell rc
   become_user: vagrant
   blockinfile:
     dest: ~/.bashrc
     block: |
-      source /usr/local/share/chruby/chruby.sh
-      source /usr/local/share/chruby/auto.sh
-    
+      source {{ chruby_src_path }}/chruby.sh
+      source {{ chruby_src_path }}/auto.sh
+      chruby ruby-{{ ruby_ver }}
+    insertbefore: BOF
 
+- name: chruby attempt to add sourcing for non-interactive sh for Ansible
+  become_user: vagrant
+  blockinfile:
+    dest: /home/vagrant/.profile
+    block: |
+      source {{ chruby_src_path }}/chruby.sh
+      source {{ chruby_src_path }}/auto.sh
+      chruby ruby-{{ ruby_ver }}
+    insertbefore: BOF    
     
+- name: does .ruby-version exist?
+  stat:
+    path: /home/vagrant/.ruby-version
+  register: result_ruby_version
+
+#TODO: use lineinfile instead?
+  
+- name: chruby create ruby-version file to ensure default ruby
+  copy:
+    dest: "/home/vagrant/.ruby-version"
+    content: "{{ ruby_ver }}"
+  when: result_ruby_version.stat.islnk is not defined
