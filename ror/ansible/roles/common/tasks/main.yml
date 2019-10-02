@@ -4,7 +4,15 @@
 # role: common
 # install items common to every setup 
  
- # Ensures apitutde is installed for initial package management
+# Make sure everything is cleaned up from the previous pass in light of
+# the bug with corrupted apt packages and Ansible per
+# https://github.com/ansible/ansible-modules-core/issues/2951
+
+- name: cleanup apt
+  become_user: root
+  command: apt-get clean
+   
+# Ensures apitutde is installed for initial package management
 - name: Update all packages to the latest version
   apt:
     name: aptitude 
@@ -12,7 +20,6 @@
 - name: Update apt repositories
   apt: 
     update_cache: yes
-  ignore_errors: yes
         
 - name: Safe system upgrade via aptitude
   apt: 
@@ -20,12 +27,17 @@
   connection: local
   become: yes
   become_user: root  
-  ignore_errors: yes
-  
+
+- name: cleanup apt again
+  become_user: root
+  command: apt-get clean
+
 - name: Ensure basic tools and packages are present
-  apt: name={{ item }} update_cache=true state=latest
+  apt: name={{ item }} update_cache=true state=present
   with_items:
     - bash
     - openssl
     - git
     - curl
+
+
