@@ -4,7 +4,7 @@
 # Installs DB choices, right now just PostgreSQL
 
 - name: Install PostgreSQL
-  apt: pkg={{ item}} update_cache=yes state=latest
+  apt: pkg={{ item}} update_cache=yes state=present
   with_items:
     - python-psycopg2
     - postgresql
