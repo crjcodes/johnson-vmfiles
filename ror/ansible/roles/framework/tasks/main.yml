@@ -58,9 +58,104 @@
 
 - name: install ruby gems
   become_user: vagrant
-  command: bash -lc "gem install --no-ri {{item}}" 
+  command: bash -lc "/opt/rubies/ruby-{{ ruby_ver }}/bin/gem install {{item}}" 
   with_items:
-   - rails
-  ignore_errors: yes
+   - rails -v "{{ rails_ver }}"
+  failed_when: false
+  changed_when: false
+  
+  
+#------------------------------------------- 
+# Node.js
 
- 
+# Taken from geerlingguy at github:
+#   https://github.com/geerlingguy/ansible-role-nodejs/blob/master/tasks/setup-Debian.yml
+
+- name: Ensure apt-transport-https is installed.
+  apt: name=apt-transport-https state=present
+
+- name: Add Nodesource apt key.
+  apt_key:
+    url: https://keyserver.ubuntu.com/pks/lookup?op=get&fingerprint=on&search=0x1655A0AB68576280
+    id: "68576280"
+    state: present
+
+- name: Add NodeSource repositories for Node.js.
+  apt_repository:
+    repo: "{{ item }}"
+    state: present
+  with_items:
+    - "deb https://deb.nodesource.com/node_{{ nodejs_ver }} {{ ansible_distribution_release }} main"
+    - "deb-src https://deb.nodesource.com/node_{{ nodejs_ver }} {{ ansible_distribution_release }} main"
+  register: node_repo
+
+- name: Update apt cache if repo was added.
+  apt: update_cache=yes
+  when: node_repo.changed
+  tags: ['skip_ansible_lint']
+
+
+- name: Install nodejs
+  apt: "name=nodejs={{ nodejs_ver|regex_replace('x', '') }}* state=present"
+
+#------------------------------------------- 
+# Yarn
+
+# Taken from fubarhouse at github:
+#   https://github.com/fubarhouse/ansible-role-yarn/blob/master/tasks/yarn-Debian.yml
+
+  
+- name: "Yarn | GPG"
+  apt_key:
+    url: https://dl.yarnpkg.com/debian/pubkey.gpg
+    state: present
+
+- name: "Yarn | Ensure Debian sources list file exists"
+  file:
+    path: /etc/apt/sources.list.d/yarn.list
+    owner: root
+    mode: 0644
+    state: touch
+
+- name: "Yarn | Ensure Debian package is in sources list"
+  lineinfile:
+    dest: /etc/apt/sources.list.d/yarn.list
+    regexp: 'deb http://dl.yarnpkg.com/debian/ stable main'
+    line: 'deb http://dl.yarnpkg.com/debian/ stable main'
+    state: present
+
+- name: "Yarn | Update APT cache"
+  apt:
+    update_cache: yes
+    
+- name: "Yarn | Install"
+  package:
+    name: yarn
+    state: present
+  register: task_result
+  until: task_result is success
+  retries: 10
+  delay: 2
+
+- name: "Yarn | Configure shell profiles"
+  lineinfile:
+    dest: "/home/vagrant/{{ item }}"
+    regexp: "PATH:{{ yarn_global_path }}/bin"
+    line:  'export PATH="$PATH:{{ yarn_global_path }}/bin";'
+    state: present
+  failed_when: false
+  with_items:
+    - "{{ yarn_shell_profiles }}"
+
+- name: "Yarn | Update as required"
+  command: "yarn self-update {{ yarn_version | default() }}"
+  changed_when: false
+  failed_when: false    
+    
+#------------------------------------------- 
+# Dev workspace
+
+- name: make shared file folder
+  file:
+    path: /home/vagrant/code
+    state: directory    
