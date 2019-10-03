@@ -1,0 +1,18 @@
+---
+
+#------------------------------------------- 
+# Dev workspace
+
+- name: make dev postgresql user
+  command: "sudo -u postgres createuser -s {{ db_user }} "
+
+- name: make shared file folder
+  file:
+    path: /home/vagrant/code
+    state: directory    
+
+
+- name: clone affirm project from github
+  git:
+    repo: https://github.com/crjcodes/affirm.git
+    dest: /home/vagrant/code/affirm
