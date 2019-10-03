@@ -151,11 +151,12 @@
   command: "yarn self-update {{ yarn_version | default() }}"
   changed_when: false
   failed_when: false    
-    
-#------------------------------------------- 
-# Dev workspace
 
-- name: make shared file folder
-  file:
-    path: /home/vagrant/code
-    state: directory    
+- name: "Yarn | Another attempt at updates"
+  command: "yarn install --check-files"
+
+#------------------------------------------- 
+# Rails Server Dependencies
+
+- name: "Running bundle to check gems for rails server, etc"
+  command: "bash -c -l 'bundle install'"
